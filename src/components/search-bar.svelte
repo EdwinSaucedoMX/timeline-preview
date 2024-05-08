@@ -13,7 +13,7 @@
 		placeholder="Search any location..."
 		class="outline-none px-4 py-2 rounded-lg shadow-inner border border-border w-full"
 		list="locations"
-		on:blur={(e) => {
+		on:change={(e) => {
 			const { target } = e ?? {};
 			const { value } = target ?? {};
 			if (value) {
