@@ -1,8 +1,7 @@
 <script>
-	import Dialog from '../components/dialog.svelte';
-	import SearchBar from '../components/search-bar.svelte';
 	import moment from 'moment-timezone';
-	import Caution from '../icons/caution.svelte';
+	import SearchBar from '../components/search-bar.svelte';
+
 	const userGuessZone = moment.tz.guess();
 	const userZone = moment.tz(userGuessZone);
 	const name = userZone.tz() ?? '';
@@ -15,6 +14,10 @@
 		{
 			name,
 			GMT
+		},
+		{
+			name: 'America/BajaNorte',
+			GMT: -7
 		}
 	];
 
@@ -27,10 +30,18 @@
 	function removeZone(zone) {
 		selectedZones = selectedZones.filter((added) => added.name !== zone.name);
 	}
+
+	// Clock
+
+	let timer = moment();
+
+	setInterval(() => {
+		timer = moment();
+	}, 500);
 </script>
 
 <svelte:head>
-	<title>Homepage</title>
+	<title>Time Zone Picker</title>
 	<meta name="description" content="Time zones preview" />
 </svelte:head>
 
@@ -41,7 +52,9 @@
 			id="zones-box"
 			class="h-[80%] border-border border p-4 rounded-lg text-secondary flex flex-col gap-2 bg-background-foreground"
 		>
-			<h1 class="font-bold text-xl">Time zones</h1>
+			<h1 class="font-bold text-xl relative">
+				Time zones <p class="font-light absolute top-0 right-0">{timer.format('hh:mm:ss')}</p>
+			</h1>
 			<p class="font-thin">Here you can see the time zones of different countries</p>
 			{#each selectedZones as zone}
 				<section
@@ -57,7 +70,9 @@
 					<section class="shrink grow-0 font-thin">
 						<button
 							class="hover:text-primary text-sm cursor-pointer"
-							on:click={() => removeZone(zone)}
+							on:click={() => {
+								removeZone(zone);
+							}}
 						>
 							Remove
 						</button>
@@ -68,8 +83,37 @@
 	</section>
 	<section
 		id="zones-box"
-		class="h-[85dvh] w-full border-border border p-4 rounded-lg text-secondary flex flex-col gap-2 bg-background-foreground"
-	></section>
+		class="h-[85dvh] w-full border-border border p-4 rounded-lg text-secondary relative flex flex-col gap-2 bg-background-foreground"
+	>
+		<section class="grid w-full grid-cols-24 p-2">
+			<!-- Items -->
+			{#each selectedZones as zone, index}
+				<section class="shadow-md p-4 col-span-full row-span-1">
+					<p>{zone.name} GMT {zone.GMT}</p>
+					<section class="grid grid-cols-24">
+						{#each [...Array(24).keys()] as hour}
+							<p>
+								{(() => {
+									if (!index) return moment(timer).add(hour, 'hour').format('HH');
+									// console.log(Math.abs(GMT) + Number(zone.GMT));
+									console.log(timer.get('hour'));
+									const diff = Math.abs(GMT) + Number(zone.GMT);
+									return moment(timer)
+										.add(hour + diff, 'hour')
+										.format('HH');
+								})()}
+							</p>
+						{/each}
+					</section>
+				</section>
+			{/each}
+			<!-- Cursor selection box -->
+			<!-- <section
+					id="cursor-selection-box"
+					class="absolute border-2 shadow-inner border-red row-span-full col-start-[1] col-end-[-1] bg-black bg-opacity-5 w-full h-full"
+				></section> -->
+		</section>
+	</section>
 </section>
 
 <!-- <Dialog title="Warning!">
