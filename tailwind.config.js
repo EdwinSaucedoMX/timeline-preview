@@ -20,6 +20,12 @@ export default {
 					DEFAULT: '#D1D5DB',
 					foreground: '#F9FAFB'
 				}
+			},
+			gridTemplateRows: {
+				24: 'repeat(24, minmax(0, 1fr))'
+			},
+			gridTemplateColumns: {
+				24: 'repeat(24, minmax(0, 1fr))'
 			}
 		}
 	},
