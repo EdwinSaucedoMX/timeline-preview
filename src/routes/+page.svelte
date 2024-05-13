@@ -10,30 +10,32 @@
 	let selectedZones = [];
 
 	const userGuessZone = moment.tz.guess();
-	const homeZone = moment.tz(selectedZones?.at(0) ?? userGuessZone);
+	const homeZone = moment.tz(userGuessZone);
 	const name = homeZone.tz() ?? '';
 	const GMT = Number(homeZone.format('Z').replace(':00', ''));
 	/**
 	 * @type {any| null | undefined}
 	 */
-	selectedZones.push({
+
+	let currentZone = {
 		name,
 		GMT
-	});
+	};
+
+	selectedZones.push(currentZone);
+
 	/**
 	 * @param {{ name: string; }} zone
 	 */
 	function addZone(zone) {
 		if (!moment.tz.names().includes(zone.name)) return;
 		if (selectedZones.filter((added) => added.name === zone.name).length > 0) return;
-		selectedZones?.push?.(zone);
-		selectedZones = [...selectedZones];
+		selectedZones = [...selectedZones, zone];
 	}
 
 	let className = 'hidden';
 
 	function handleDialog() {
-		console.log('handleDialog');
 		className = '' ? 'hidden' : '';
 	}
 	/**
@@ -56,6 +58,7 @@
 		if (action) {
 			selectedZones.shift();
 			selectedZones = [...selectedZones];
+			currentZone = selectedZones.at(0) ?? { name, GMT };
 		}
 
 		className = 'hidden';
@@ -86,7 +89,7 @@
 				Time zones <p class="font-light absolute top-0 right-0">{timer.format('hh:mm:ss')}</p>
 			</h1>
 			<p class="font-thin">Here you can see the time zones of different countries</p>
-			{#each selectedZones as zone, index}
+			{#each selectedZones as zone}
 				<section
 					class="flex content-between border border-border gap-4 p-4 rounded-md bg-background"
 				>
