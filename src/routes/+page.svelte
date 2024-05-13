@@ -1,36 +1,66 @@
 <script>
 	import moment from 'moment-timezone';
 	import SearchBar from '../components/search-bar.svelte';
+	import Dialog from '../components/dialog.svelte';
+	import Caution from '../icons/caution.svelte';
+
+	/**
+	 * @type {any[]}
+	 */
+	let selectedZones = [];
 
 	const userGuessZone = moment.tz.guess();
-	const userZone = moment.tz(userGuessZone);
-	const name = userZone.tz() ?? '';
-	const GMT = Number(userZone.format('Z').replace(':00', ''));
-
+	const homeZone = moment.tz(selectedZones?.at(0) ?? userGuessZone);
+	const name = homeZone.tz() ?? '';
+	const GMT = Number(homeZone.format('Z').replace(':00', ''));
 	/**
 	 * @type {any| null | undefined}
 	 */
-	let selectedZones = [
-		{
-			name,
-			GMT
-		},
-		{
-			name: 'America/BajaNorte',
-			GMT: -7
-		}
-	];
-
+	selectedZones.push({
+		name,
+		GMT
+	});
+	/**
+	 * @param {{ name: string; }} zone
+	 */
 	function addZone(zone) {
+		if (!moment.tz.names().includes(zone.name)) return;
 		if (selectedZones.filter((added) => added.name === zone.name).length > 0) return;
 		selectedZones?.push?.(zone);
 		selectedZones = [...selectedZones];
 	}
 
+	let className = 'hidden';
+
+	function handleDialog() {
+		console.log('handleDialog');
+		className = '' ? 'hidden' : '';
+	}
+	/**
+	 * @param {{ name: string; }} zone
+	 */
 	function removeZone(zone) {
-		selectedZones = selectedZones.filter((added) => added.name !== zone.name);
+		selectedZones = selectedZones.filter((added, index) => {
+			if (!index && added.name === zone.name) {
+				handleDialog();
+				return added;
+			}
+			return added.name !== zone.name ? added : null;
+		});
 	}
 
+	/**
+	 * @param {boolean} action
+	 */
+	function fnDialog(action) {
+		if (action) {
+			selectedZones.shift();
+			selectedZones = [...selectedZones];
+		}
+
+		className = 'hidden';
+		return;
+	}
 	// Clock
 
 	let timer = moment();
@@ -56,7 +86,7 @@
 				Time zones <p class="font-light absolute top-0 right-0">{timer.format('hh:mm:ss')}</p>
 			</h1>
 			<p class="font-thin">Here you can see the time zones of different countries</p>
-			{#each selectedZones as zone}
+			{#each selectedZones as zone, index}
 				<section
 					class="flex content-between border border-border gap-4 p-4 rounded-md bg-background"
 				>
@@ -85,38 +115,34 @@
 		id="zones-box"
 		class="h-[85dvh] w-full border-border border p-4 rounded-lg text-secondary relative flex flex-col gap-2 bg-background-foreground"
 	>
-		<section class="grid w-full grid-cols-24 p-2">
-			<!-- Items -->
-			{#each selectedZones as zone, index}
-				<section class="shadow-md p-4 col-span-full row-span-1">
-					<p>{zone.name} GMT {zone.GMT}</p>
-					<section class="grid grid-cols-24">
-						{#each [...Array(24).keys()] as hour}
-							<p>
-								{(() => {
-									if (!index) return moment(timer).add(hour, 'hour').format('HH');
-									// console.log(Math.abs(GMT) + Number(zone.GMT));
-									console.log(timer.get('hour'));
-									const diff = Math.abs(GMT) + Number(zone.GMT);
-									return moment(timer)
-										.add(hour + diff, 'hour')
-										.format('HH');
-								})()}
-							</p>
-						{/each}
+		<section class="p-2 grid grid-cols-24">
+			<section class="grid w-full grid-cols-24 p-4 col-span-full">
+				<!-- Items -->
+				{#each selectedZones as zone, index}
+					<section class="shadow-md p-4 col-span-full row-span-1">
+						<p>{zone.name} GMT {zone.GMT}</p>
+						<section class="grid grid-cols-24">
+							{#each [...Array(24).keys()] as hour}
+								<p>
+									{(() => {
+										if (!index) return moment(timer).add(hour, 'hour').format('HH');
+										// console.log(Math.abs(GMT) + Number(zone.GMT));
+										const diff = Math.abs(GMT) + Number(zone.GMT);
+										return moment(timer)
+											.add(hour + diff, 'hour')
+											.format('HH');
+									})()}
+								</p>
+							{/each}
+						</section>
 					</section>
-				</section>
-			{/each}
-			<!-- Cursor selection box -->
-			<!-- <section
-					id="cursor-selection-box"
-					class="absolute border-2 shadow-inner border-red row-span-full col-start-[1] col-end-[-1] bg-black bg-opacity-5 w-full h-full"
-				></section> -->
+				{/each}
+			</section>
 		</section>
 	</section>
 </section>
 
-<!-- <Dialog title="Warning!">
+<Dialog title="Warning!" {className}>
 	<section slot="content" class="w-full h-full">
 		<section class="flex pb-16 flex-col content-evenly min-h-full flex-wrap">
 			<Caution size="180" fill="#ffaa22" />
@@ -126,14 +152,14 @@
 	<section slot="footer" class="w-full flex *:grow gap-4 h-16 *:transition-all">
 		<button
 			class="bg-primary-foreground hover:bg-secondary hover:text-primary-foreground text-secondary shadow-md rounded-md p-2"
-			>No, go back!</button
+			on:click={() => fnDialog(false)}>No, go back!</button
 		>
 		<button
 			class="bg-primary text-white rounded-md p-2 hover:bg-secondary hover:text-primary-foreground"
-			>Yes, delete it!</button
+			on:click={() => fnDialog(true)}>Yes, delete it!</button
 		>
 	</section>
-</Dialog> -->
+</Dialog>
 
 <style lang="postcss">
 </style>
