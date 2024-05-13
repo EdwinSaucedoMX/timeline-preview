@@ -1,10 +1,11 @@
 <script>
 	export let title = 'Insert a title here';
+	export let className = '';
 </script>
 
 <section
 	class="fixed w-dvw h-dvh bg-black bg-opacity-30 top-0
-left-0 grid place-content-center"
+left-0 grid place-content-center {className}"
 	{...$$restProps}
 >
 	<section
